@@ -1,0 +1,124 @@
+
+clc;
+clear;
+close all;
+
+
+params = default_params();
+
+
+theta = [2.0, 0.0325, 648000, 4.0];
+
+
+%% 2. Define objective function
+
+
+
+objective = @(x) -uav_range(x, theta, params)/(1e5);
+
+
+%% 3. Define design variable bounds
+
+% x = [S, AR, mb, V]
+
+lb = [0.3, 4, 0.2, 8];    
+ub = [3, 20, 10, 40];     
+
+
+
+nonlcon = @(x) deal( ...
+    uav_range_constraints(x, theta, params), []);
+
+
+%% 5. Set optimization options
+
+options = optimoptions('fmincon', ...
+    'Algorithm', 'interior-point', ...
+    'Display', 'off', ...
+    'OptimalityTolerance', 1e-10, ...
+    'StepTolerance', 1e-12, ...
+    'ConstraintTolerance', 1e-10, ...
+    'MaxIterations', 500, ...
+    'MaxFunctionEvaluations', 5000);
+
+
+
+x0 = [0.5, 12, 4,   20;
+      1.0,  8, 2,   15;
+      0.4, 18, 5.5, 22;
+      2.0, 10, 7,   30 ];
+
+
+
+results = zeros(4,5);
+
+for i = 1:4
+
+    % Run fmincon
+    [x_opt, fval, exitflag] = fmincon( ...
+        objective, x0(i,:), ...
+        [], [], [], [], lb, ub, nonlcon, options);
+
+    % Calculate actual range in meters
+    [R, g] = uav_range(x_opt, theta, params);
+
+    % Convert range to kilometers
+    R_km = R/1000;
+
+    % Save results
+    results(i,:) = [x_opt, R_km];
+
+    % Display results
+    fprintf('\n====================================\n');
+    fprintf('Starting Point %d\n', i);
+    fprintf('====================================\n');
+
+    fprintf('Wing Area:       %.8f m^2\n', x_opt(1));
+    fprintf('Aspect Ratio:    %.8f\n', x_opt(2));
+    fprintf('Battery Mass:    %.8f kg\n', x_opt(3));
+    fprintf('Cruise Speed:    %.8f m/s\n', x_opt(4));
+    fprintf('Maximum Range:   %.8f km\n', R_km);
+
+    fprintf('Exit Flag:       %d\n', exitflag);
+
+    fprintf('\nConstraint Values:\n');
+    disp(g);
+
+    % Identify active constraints
+    active = abs(g) < 1e-6;
+
+    fprintf('Active Constraints [g1 g2 g3 g4]:\n');
+    disp(active);
+
+end
+
+
+
+fprintf('\n====================================\n');
+fprintf('FINAL COMPARISON\n');
+fprintf('====================================\n');
+
+disp('Columns: [S, AR, mb, V, Range (km)]');
+disp(results);
+
+
+
+
+[best_range, best_index] = max(results(:,5));
+
+fprintf('\nBest Starting Point: %d\n', best_index);
+fprintf('Best Range: %.8f km\n', best_range);
+
+fprintf('Optimal Design [S, AR, mb, V]:\n');
+disp(results(best_index,1:4));
+
+
+function c = uav_range_constraints(x, theta, params)
+
+    % Obtain constraints from the existing UAV model
+    [~, g] = uav_range(x, theta, params);
+
+    % Return the four inequality constraints
+    c = g(1,:);
+
+end
