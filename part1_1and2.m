@@ -1,6 +1,13 @@
 %% Part 1.1
-f = @(alpha, deltaE) ((8.9302e3*(0.247 + 6*alpha + 0.43*deltaE + 0.6*exp(-(alpha/0.05).^2)) - 11346)/11346).^2 ...
-                   + (0.1 - 1.3*alpha - 1.28*deltaE).^2;
+
+params = trim_params();
+p = params;
+
+
+f = @(alpha, deltaE) ((p.q*p.S*(p.CL0 + p.CLalpha*alpha + p.CLdelta*deltaE ...
+        + p.DCLp0*exp(-(alpha/p.alpha_p).^2)) - p.W)/p.W).^2 ...
+        + (p.CM0 + p.CMalpha*alpha + p.CMdelta*deltaE).^2;
+
 plot_contours(1, f)
 
 %% Part 1.2
