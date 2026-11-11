@@ -1,0 +1,30 @@
+%% Plotting on Contour plot
+
+
+
+
+
+
+f = @(alpha,deltaE) ...
+    ((0.5*params.rho*params.V^2*params.S .* ...
+    (params.CL0 + params.CLal.*alpha + params.CLdel.*deltaE ...
+    + params.DCLp0.*exp(-(alpha./params.alp).^2)) ...
+    - params.W)./params.W).^2 ...
+    + (params.CM0 - params.CMal.*alpha ...
+    - params.CMdel.*deltaE).^2;
+
+
+
+% Both cases on the same graph
+plot_contours(1,f);
+
+% Case one being plotted
+hold on;
+plot(path_a(1,:)*180/pi,path_a(2,:)*180/pi,'r-o','LineWidth',2);
+plot(position_a(1)*180/pi,position_a(2)*180/pi,'bo','MarkerFaceColor','b');
+
+% Case 2 being plotted
+plot(path_b(1,:)*180/pi,path_b(2,:)*180/pi,'k-o','LineWidth',2);
+plot(position_b(1)*180/pi,position_b(2)*180/pi,'ko','MarkerFaceColor','b');
+legend('Objective Function','Case 1 Grad descent Path','Final Position of a', 'Case 2 Grad descent Path','Final Position of b');
+hold off
