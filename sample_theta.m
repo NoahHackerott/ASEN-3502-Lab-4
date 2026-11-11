@@ -2,7 +2,7 @@ function theta = sample_theta(sc, N)
 % Draw N random parameter sets for the UAV model.
 
 % Payload mass [kg]
-m_pay = sc.mpay_mu + sc.mpay_sigma * randn(N,1);
+m_pay = sc.mpay_mu + sc.mpay_sig * randn(N,1);
 
 % Zero-lift drag coefficient
 Cd0 = sc.CD0_min + (sc.CD0_max - sc.CD0_min) * rand(N,1);
