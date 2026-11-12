@@ -112,12 +112,4 @@ fprintf('Optimal Design [S, AR, mb, V]:\n');
 disp(results(best_index,1:4));
 
 
-function c = uav_range_constraints(x, theta, params)
 
-    % Obtain constraints from the existing UAV model
-    [~, g] = uav_range(x, theta, params);
-
-    % Return the four inequality constraints
-    c = g(1,:);
-
-end

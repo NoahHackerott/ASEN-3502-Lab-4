@@ -40,7 +40,7 @@ fprintf('Deterministic optimum: S = %.6f, AR = %.6f, m_b = %.6f, V = %.6f\n', x_
 fprintf('R* = %.3f km\n', best_R/1e3);
 
 %% Challenge submission
-evaluate(x_star, 'your.gradescope.email@colorado.edu')
+evaluate(x_star, 'noah.hackerott@colorado.edu')
 
 %% Local function
 function c = uav_constraints(x, theta, params)
