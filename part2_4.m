@@ -2,6 +2,7 @@
 clear; close all; clc;
 addpath('Lab-4');   % evaluate.p
 
+
 % Deterministic optimum (same setup as Task 2.2)
 params = default_params();
 % nominal parameters

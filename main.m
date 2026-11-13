@@ -273,21 +273,27 @@ for k = 1:4
 end
 sgtitle(sprintf('Task 2.3: Sampled \\theta (nominal scenario), N = %d', N))
 
-%% Part 2.4
+%% Part 2.4 — robust design for the challenge distribution
 clear; close all; clc;
-addpath('Lab-4');   % evaluate.p
-
-% Deterministic optimum (same setup as Task 2.2)
+addpath('Lab-4');   
 params = default_params();
-% nominal parameters
-theta  = [2.0, 0.0325, 648000, 4.0];   
 
-objective = @(x) -uav_range(x, theta, params)/1e5;
-% Use deal as a way to essentially create an anonymous function that
-% returns two outputs
-nonlcon   = @(x) deal(uav_constraints(x, theta, params), []);
+% Collin shared this approach with me
+z = -sqrt(2)*erfcinv(2*(1 - 1e-4)) + 0.5;
 
-% Bounds
+% Worst case for the constraints
+theta_con = [1.5 + z*0.1, 0.0325, 648000, 0];
+
+% mean parameter for the objective
+Vw_eff    = sqrt(64/3);
+theta_obj = [1.5, 0.5*(0.025+0.0325), 648000, Vw_eff];
+
+objective = @(x) -uav_range(x, theta_obj, params)/1e5;
+% Claude showed me that deal can be used to help with anonymous functions
+% that have more than one output
+nonlcon   = @(x) deal(uav_constraints(x, theta_con, params), []);
+
+% Upper and lower bounds
 lb = [0.3, 4, 0.2, 8];
 ub = [3, 20, 10, 40];
 
@@ -304,15 +310,18 @@ x0 = [0.5, 12, 4,   20;
 best_R = -Inf;
 for i = 1:size(x0, 1)
     [x_opt, ~, exitflag] = fmincon(objective, x0(i,:), [], [], [], [], lb, ub, nonlcon, options);
-    [R, g] = uav_range(x_opt, theta, params);
-    if exitflag > 0 && all(g <= 1e-8) && R > best_R
-        best_R = R;
+    R_obj = uav_range(x_opt, theta_obj, params);           % mean range
+    g_wc  = uav_constraints(x_opt, theta_con, params);     % worst case constraints
+    if exitflag > 0 && all(g_wc <= 1e-8) && R_obj > best_R
+        best_R = R_obj;
         x_star = x_opt;
     end
 end
 
-fprintf('Deterministic optimum: S = %.6f, AR = %.6f, m_b = %.6f, V = %.6f\n', x_star);
-fprintf('R* = %.3f km\n', best_R/1e3);
+% Claude helped with this
+fprintf('Robust optimum: S = %.6f, AR = %.6f, m_b = %.6f, V = %.6f\n', x_star);
+fprintf('Mean-range proxy = %.3f km\n', best_R/1e3);
+
 
 %% Challenge submission
 evaluate(x_star, 'noah.hackerott@colorado.edu')
